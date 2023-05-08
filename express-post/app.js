@@ -2,19 +2,52 @@ const express = require('express');
 const app = express();
 
 app.use(express.json());
+app.use(middleWare);
 
-const emailRegex = /^\S+@\S+\.\S+$/;
+
+const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 const phoneRegex = /^\d{10}$/;
 
-app.post('/Registeruser', (req, res) => {
+ function middleWare(req,res,next){
+
   const { name, address, email, phoneno, Dob } = req.body;
-  if (!emailRegex.test(email) || !phoneRegex.test(phoneno)) {
-    return res.json({ message: 'Invalid email or phone number' });
-  }
-  else{
-  // Return a success message to the client
-  res.json({ message: 'User registered successfully!' });
-  }
+
+  const errorMessage={};
+
+    if (name.length==0){
+     errorMessage.name="Name is empty"
+    }
+    if (email.length==0){
+      errorMessage.email="email is empty"}
+    else{
+      if (!emailRegex.test(email) ){
+        errorMessage.email="Invalid email"
+      }
+      } 
+    if (phoneno.length==0){
+        errorMessage.phoneno="phone number is empty"}
+    else{
+      if  (!phoneRegex.test(phoneno)){
+          errorMessage.phoneno="Invalid phone number"}
+        }
+
+    if(errorMessage.name || errorMessage.email || errorMessage.phoneno){
+          errorMessage.result="Registration unsuccessfull!"
+        }
+    else{
+          errorMessage.result="User registered successfully!"
+        }
+
+        req.validator = errorMessage;
+        next();
+}
+
+app.post('/Registeruser', (req, res) => {
+  const { name, email, phoneno ,result} = req.validator;
+  res.send({name,email,phoneno,result});
+  // res.end() ;
+  
+  //   res.json(errorMessage)
 });
 
 app.listen(2000, () => {
